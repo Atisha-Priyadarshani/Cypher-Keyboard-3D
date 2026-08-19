@@ -109,7 +109,7 @@ function SwitchCard({ sw }: { sw: typeof SWITCHES[0] }) {
     <button
       onClick={handleClick}
       aria-label={`Select ${sw.name} switch`}
-      className="text-left w-full rounded-2xl p-6 text-white transition-transform hover:scale-[1.02] active:scale-95 shadow-xl cursor-pointer focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-blue-400 focus-visible:ring-offset-2"
+      className="relative overflow-hidden text-left w-full rounded-2xl p-6 text-white transition-transform hover:scale-[1.02] active:scale-95 shadow-xl cursor-pointer focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-blue-400 focus-visible:ring-offset-2"
       style={{ backgroundColor: sw.bg }}
     >
       {/* Repeating background text */}
