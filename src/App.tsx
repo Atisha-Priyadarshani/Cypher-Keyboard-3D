@@ -1,6 +1,6 @@
 import { useRef, useEffect, useState, Suspense } from 'react';
 import { Canvas, useThree, useFrame } from '@react-three/fiber';
-import { Environment, ContactShadows, Float, useProgress } from '@react-three/drei';
+import { Environment, ContactShadows, useProgress } from '@react-three/drei';
 import { Keyboard } from './components/Keyboard';
 import { Switch } from './components/Switch';
 import { useConfiguratorStore } from './store/useConfiguratorStore';
@@ -90,9 +90,7 @@ function AnimatedKeyboard({
   );
 }
 
-/* ─── Single Switch Card (its own mini Canvas) ─── */
 function SwitchCard({ sw }: { sw: typeof SWITCHES[0] }) {
-  const playKeySound = useConfiguratorStore((s) => s.playKeySound);
   const setActiveSwitch = useConfiguratorStore((s) => s.setActiveSwitch);
 
   const handleClick = () => {
