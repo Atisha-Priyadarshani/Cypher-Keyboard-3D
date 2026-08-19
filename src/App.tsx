@@ -32,13 +32,25 @@ const SWITCHES: { color: SwitchType; name: string; hex: string; bg: string; desc
 /* ─── Custom Loading Screen ─── */
 function CustomLoader() {
   const { progress, active } = useProgress();
+  const [hasLoaded, setHasLoaded] = useState(false);
+
+  useEffect(() => {
+    if (progress === 100) {
+      // Small delay to ensure smooth transition
+      setTimeout(() => setHasLoaded(true), 200);
+    }
+  }, [progress]);
+
+  // If we haven't loaded yet, force it to be visible regardless of the momentary 'active' state fluctuation when mounting
+  const isVisible = !hasLoaded || active;
+
   return (
     <div
       role="status"
       aria-live="polite"
       aria-label="Loading 3D Assets"
-      className={`fixed inset-0 z-50 flex flex-col items-center justify-center bg-white transition-opacity duration-700 ease-in-out ${
-        active ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
+      className={`fixed inset-0 z-[60] flex flex-col items-center justify-center bg-white transition-opacity duration-700 ease-in-out ${
+        isVisible ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
       }`}
     >
       <div className="text-4xl font-black tracking-widest text-[#1e3a5f] mb-6 animate-pulse">
@@ -97,9 +109,9 @@ function AnimatedKeyboard({
 /* ─── Splash Screen for Performance ─── */
 function SplashScreen({ onStart }: { onStart: () => void }) {
   return (
-    <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-[#f0f2f5]">
-      <img src={heroImage} alt="Cypher Keyboard Preview" className="w-full max-w-sm object-contain drop-shadow-2xl mb-8 scale-110" />
-      <h1 className="text-3xl md:text-5xl font-black tracking-widest text-[#1e3a5f] mb-8">CYPHER</h1>
+    <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-[#f0f2f5] p-6">
+      <img src={heroImage} alt="Cypher Keyboard Preview" className="w-full max-w-[200px] md:max-w-sm object-contain drop-shadow-2xl mb-8 md:scale-110" />
+      <h1 className="text-3xl md:text-5xl font-black tracking-widest text-[#1e3a5f] mb-8 text-center">CYPHER</h1>
       <button 
         onClick={onStart}
         className="px-8 py-4 bg-[#1e3a5f] text-white text-sm font-bold uppercase tracking-wider rounded-full hover:scale-105 transition-transform shadow-lg cursor-pointer focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-blue-400"
