@@ -168,5 +168,3 @@ export function Switch({ color, hexColor, ...restProps }: SwitchProps) {
     </group>
   );
 }
-
-useGLTF.preload("/switch.gltf");

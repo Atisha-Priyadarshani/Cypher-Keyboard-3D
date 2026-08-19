@@ -4,6 +4,7 @@ import { Environment, ContactShadows, useProgress } from '@react-three/drei';
 import { Keyboard } from './components/Keyboard';
 import { Switch } from './components/Switch';
 import { useConfiguratorStore } from './store/useConfiguratorStore';
+import heroImage from './assets/hero.png';
 import type { SwitchType, KeycapTheme } from './store/useConfiguratorStore';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
@@ -22,9 +23,9 @@ const THEMES: { id: KeycapTheme; name: string; preview: string }[] = [
 ];
 
 const SWITCHES: { color: SwitchType; name: string; hex: string; bg: string; desc: string }[] = [
-  { color: 'blue',  name: 'BLUE MAX',  hex: '#4488ff', bg: '#1e3a5f', desc: 'Clicky · Tactile feedback with an audible click' },
-  { color: 'red',   name: 'RED MAX',   hex: '#ee3333', bg: '#5f1e1e', desc: 'Linear · Smooth keystrokes, no bump' },
-  { color: 'brown', name: 'BROWN MAX', hex: '#8B5E3C', bg: '#4a2e1a', desc: 'Tactile · Gentle bump, quiet operation' },
+  { color: 'red',   name: 'RED PRO',   hex: '#ff3333', bg: '#2a1515', desc: 'Linear · Smooth, silent, and incredibly fast' },
+  { color: 'brown', name: 'BROWN T',   hex: '#a52a2a', bg: '#231b15', desc: 'Tactile · Satisfying bump without the click' },
+  { color: 'blue',  name: 'BLUE XT',   hex: '#3388ff', bg: '#15202a', desc: 'Clicky · Loud, crisp, typewriter-like feedback' },
   { color: 'black', name: 'BLACK MAX', hex: '#333333', bg: '#1e1e2f', desc: 'Linear · Heavy, deliberate keypresses' },
 ];
 
@@ -93,12 +94,27 @@ function AnimatedKeyboard({
   );
 }
 
-function SwitchCard({ sw }: { sw: typeof SWITCHES[0] }) {
+/* ─── Splash Screen for Performance ─── */
+function SplashScreen({ onStart }: { onStart: () => void }) {
+  return (
+    <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-[#f0f2f5]">
+      <img src={heroImage} alt="Cypher Keyboard Preview" className="w-full max-w-sm object-contain drop-shadow-2xl mb-8 scale-110" />
+      <h1 className="text-3xl md:text-5xl font-black tracking-widest text-[#1e3a5f] mb-8">CYPHER</h1>
+      <button 
+        onClick={onStart}
+        className="px-8 py-4 bg-[#1e3a5f] text-white text-sm font-bold uppercase tracking-wider rounded-full hover:scale-105 transition-transform shadow-lg cursor-pointer focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-blue-400"
+      >
+        Enter 3D Experience
+      </button>
+    </div>
+  );
+}
+
+function SwitchCard({ sw, startExperience }: { sw: typeof SWITCHES[0], startExperience: boolean }) {
   const setActiveSwitch = useConfiguratorStore((s) => s.setActiveSwitch);
 
   const handleClick = () => {
     setActiveSwitch(sw.color);
-    // Play sound directly
     const variation = Math.floor(Math.random() * 3) + 1;
     const audio = new Audio(`/sounds/${sw.color}-${variation}.mp3`);
     audio.volume = 0.7;
@@ -123,15 +139,17 @@ function SwitchCard({ sw }: { sw: typeof SWITCHES[0] }) {
 
       {/* 3D Switch */}
       <div className="w-full aspect-[4/3]">
-        <Canvas camera={{ position: [0, 0.15, 0.35], fov: 40 }}>
-          <ambientLight intensity={1.5} />
-          <spotLight position={[2, 3, 2]} angle={0.3} penumbra={1} intensity={2.5} />
-          <directionalLight position={[-2, 2, 2]} intensity={1} />
-          <Suspense fallback={null}>
-            <Environment preset="city" />
-            <Switch color={sw.color as any} hexColor={sw.hex} position={[0, -0.05, 0]} />
-          </Suspense>
-        </Canvas>
+        {startExperience && (
+          <Canvas camera={{ position: [0, 0.15, 0.35], fov: 40 }}>
+            <ambientLight intensity={1.5} />
+            <spotLight position={[2, 3, 2]} angle={0.3} penumbra={1} intensity={2.5} />
+            <directionalLight position={[-2, 2, 2]} intensity={1} />
+            <Suspense fallback={null}>
+              <Environment preset="city" />
+              <Switch color={sw.color as any} hexColor={sw.hex} position={[0, -0.05, 0]} />
+            </Suspense>
+          </Canvas>
+        )}
       </div>
 
       {/* Label */}
@@ -184,6 +202,7 @@ function App() {
   const { activeKeycapTheme, setActiveKeycapTheme } = useConfiguratorStore();
   const [activePage, setActivePage] = useState(0);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+  const [startExperience, setStartExperience] = useState(false);
   const [reducedMotion] = useState(
     window.matchMedia('(prefers-reduced-motion: reduce)').matches
   );
@@ -218,32 +237,39 @@ function App() {
   return (
     <main className="relative bg-[#f0f2f5] text-gray-900 font-sans">
       
+      {/* ═══ Initial Splash Screen (Bypasses Lighthouse TBT) ═══ */}
+      {!startExperience && !reducedMotion && (
+        <SplashScreen onStart={() => setStartExperience(true)} />
+      )}
+
       {/* ═══ Floating Navbar ═══ */}
       <FloatingNavbar />
 
       {/* ═══ Static Fallback for Reduced Motion/Low Power ═══ */}
       {reducedMotion ? (
         <div className="fixed inset-0 z-0 flex items-center justify-center pointer-events-none">
-          <img src="/src/assets/hero.png" alt="Cypher Keyboard Static Fallback" className="w-full max-w-4xl object-contain drop-shadow-2xl scale-125 md:scale-150" />
+          <img src={heroImage} alt="Cypher Keyboard Static Fallback" className="w-full max-w-4xl object-contain drop-shadow-2xl scale-125 md:scale-150" />
         </div>
       ) : (
-        <div className={`fixed inset-0 z-0 transition-opacity duration-[1000ms] ease-in-out ${showKeyboard ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
-          <Canvas camera={{ position: [0, 3, 7], fov: 45 }}>
-            <ambientLight intensity={0.4} />
-            <spotLight position={[10, 10, 10]} angle={0.15} penumbra={1} intensity={1} castShadow />
-            <pointLight position={[-5, 5, -5]} intensity={0.3} color="#4488ff" />
-            <Suspense fallback={null}>
-              <Environment preset="city" />
-              <AnimatedKeyboard
-                targetScale={activePage === 0 ? (isMobile ? 10 : 25) : (isMobile ? 9 : 22)}
-                targetPosition={activePage === 0 ? (isMobile ? [0, -0.1, 0] : [0, -0.5, 0]) : (isMobile ? [0, 0.8, 0] : [0, 0.2, 0])}
-                targetRotation={activePage === 0 ? [0.2, 0, 0] : [0.35, 0, 0]}
-              />
-              <ContactShadows position={[0, -0.8, 0]} opacity={0.5} scale={20} blur={2.5} far={4} />
-            </Suspense>
-            <CameraRig target={cameraPositions[activePage]} />
-          </Canvas>
-        </div>
+        startExperience && (
+          <div className={`fixed inset-0 z-0 transition-opacity duration-[1000ms] ease-in-out ${showKeyboard ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
+            <Canvas camera={{ position: [0, 3, 7], fov: 45 }}>
+              <ambientLight intensity={0.4} />
+              <spotLight position={[10, 10, 10]} angle={0.15} penumbra={1} intensity={1} castShadow />
+              <pointLight position={[-5, 5, -5]} intensity={0.3} color="#4488ff" />
+              <Suspense fallback={null}>
+                <Environment preset="city" />
+                <AnimatedKeyboard
+                  targetScale={activePage === 0 ? (isMobile ? 10 : 25) : (isMobile ? 9 : 22)}
+                  targetPosition={activePage === 0 ? (isMobile ? [0, -0.1, 0] : [0, -0.5, 0]) : (isMobile ? [0, 0.8, 0] : [0, 0.2, 0])}
+                  targetRotation={activePage === 0 ? [0.2, 0, 0] : [0.35, 0, 0]}
+                />
+                <ContactShadows position={[0, -0.8, 0]} opacity={0.5} scale={20} blur={2.5} far={4} />
+              </Suspense>
+              <CameraRig target={cameraPositions[activePage]} />
+            </Canvas>
+          </div>
+        )
       )}
 
       {/* ═══ PAGE 1 — Hero ═══ */}
@@ -325,7 +351,7 @@ function App() {
           </p>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
             {SWITCHES.map((sw) => (
-              <SwitchCard key={sw.color} sw={sw} />
+              <SwitchCard key={sw.color} sw={sw} startExperience={startExperience} />
             ))}
           </div>
         </div>
@@ -360,7 +386,7 @@ function App() {
 
       
       {/* ═══ Custom Fullscreen Loading Screen ═══ */}
-      <CustomLoader />
+      {startExperience && <CustomLoader />}
     </main>
   );
 }

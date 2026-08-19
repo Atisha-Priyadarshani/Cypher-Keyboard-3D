@@ -1393,5 +1393,3 @@ export const Keyboard = forwardRef<KeyboardRefs, KeyboardProps>(
 );
 
 Keyboard.displayName = "Keyboard";
-
-useGLTF.preload("/keyboard.gltf");
