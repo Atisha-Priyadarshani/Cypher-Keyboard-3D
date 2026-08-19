@@ -1,0 +1,12 @@
+- `[/]` 1. **Accessibility Updates (App.tsx)**
+  - `[ ]` Add `role="status"` and `aria-live="polite"` to `CustomLoader`.
+  - `[ ]` Wrap primary content in `<main>` for ARIA landmarks.
+  - `[ ]` Add `focus-visible` outlines to `FloatingNavbar` buttons.
+  - `[ ]` Add `aria-pressed` and `aria-label` and `focus-visible` to Keycap theme buttons.
+  - `[ ]` Add `aria-label` and `focus-visible` to SwitchCard buttons.
+- `[ ]` 2. **Performance Updates (App.tsx & vite.config.ts)**
+  - `[ ]` Implement `mountCanvas` delayed render in `App.tsx` to fix TBT/LCP.
+  - `[ ]` Update `vite.config.ts` with Rollup `manualChunks` to split three.js.
+- `[ ]` 3. **Verification**
+  - `[ ]` Run local `npm run build` to verify no TS errors and test chunking.
+  - `[ ]` Push to GitHub for Vercel deployment.

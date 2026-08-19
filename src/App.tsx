@@ -33,6 +33,9 @@ function CustomLoader() {
   const { progress, active } = useProgress();
   return (
     <div
+      role="status"
+      aria-live="polite"
+      aria-label="Loading 3D Assets"
       className={`fixed inset-0 z-50 flex flex-col items-center justify-center bg-white transition-opacity duration-700 ease-in-out ${
         active ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
       }`}
@@ -103,9 +106,10 @@ function SwitchCard({ sw }: { sw: typeof SWITCHES[0] }) {
   };
 
   return (
-    <div
+    <button
       onClick={handleClick}
-      className="relative rounded-2xl overflow-hidden cursor-pointer group transition-transform duration-300 hover:scale-[1.03]"
+      aria-label={`Select ${sw.name} switch`}
+      className="text-left w-full rounded-2xl p-6 text-white transition-transform hover:scale-[1.02] active:scale-95 shadow-xl cursor-pointer focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-blue-400 focus-visible:ring-offset-2"
       style={{ backgroundColor: sw.bg }}
     >
       {/* Repeating background text */}
@@ -145,7 +149,7 @@ function SwitchCard({ sw }: { sw: typeof SWITCHES[0] }) {
         className="absolute inset-0 opacity-0 group-hover:opacity-20 transition-opacity duration-300 pointer-events-none rounded-2xl"
         style={{ background: `radial-gradient(circle at center, ${sw.hex}, transparent 70%)` }}
       />
-    </div>
+    </button>
   );
 }
 
@@ -157,17 +161,17 @@ function FloatingNavbar() {
 
   return (
     <nav className="fixed top-6 left-1/2 -translate-x-1/2 z-40 bg-white/70 backdrop-blur-xl border border-white/50 shadow-xl shadow-[#1e3a5f]/5 rounded-full px-8 py-3 flex items-center gap-8">
-      <div className="font-black tracking-widest text-[#1e3a5f] text-lg mr-4 cursor-pointer" onClick={() => scrollTo('page-hero')}>
+      <div className="font-black tracking-widest text-[#1e3a5f] text-lg mr-4 cursor-pointer" onClick={() => scrollTo('page-hero')} tabIndex={0} role="button" aria-label="Scroll to Hero">
         CYPHER
       </div>
       <div className="hidden md:flex items-center gap-8 text-sm font-bold text-gray-500">
-        <button onClick={() => scrollTo('page-keycaps')} className="hover:text-[#1e3a5f] transition-colors cursor-pointer uppercase tracking-wider">Design</button>
-        <button onClick={() => scrollTo('page-switches')} className="hover:text-[#1e3a5f] transition-colors cursor-pointer uppercase tracking-wider">Switches</button>
-        <button onClick={() => scrollTo('page-buy')} className="hover:text-[#1e3a5f] transition-colors cursor-pointer uppercase tracking-wider">Buy Now</button>
+        <button onClick={() => scrollTo('page-keycaps')} className="hover:text-[#1e3a5f] transition-colors cursor-pointer uppercase tracking-wider focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1e3a5f]">Design</button>
+        <button onClick={() => scrollTo('page-switches')} className="hover:text-[#1e3a5f] transition-colors cursor-pointer uppercase tracking-wider focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1e3a5f]">Switches</button>
+        <button onClick={() => scrollTo('page-buy')} className="hover:text-[#1e3a5f] transition-colors cursor-pointer uppercase tracking-wider focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1e3a5f]">Buy Now</button>
       </div>
       <button 
         onClick={() => scrollTo('page-buy')}
-        className="ml-4 px-6 py-2 bg-[#1e3a5f] text-white text-xs font-bold uppercase tracking-wider rounded-full hover:scale-105 transition-transform cursor-pointer shadow-md"
+        className="ml-4 px-6 py-2 bg-[#1e3a5f] text-white text-xs font-bold uppercase tracking-wider rounded-full hover:scale-105 transition-transform cursor-pointer shadow-md focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[#1e3a5f] focus-visible:ring-offset-2"
       >
         Pre-Order
       </button>
@@ -180,6 +184,7 @@ function App() {
   const { activeKeycapTheme, setActiveKeycapTheme } = useConfiguratorStore();
   const [activePage, setActivePage] = useState(0);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+  const [mountCanvas, setMountCanvas] = useState(false);
   const [reducedMotion] = useState(
     window.matchMedia('(prefers-reduced-motion: reduce)').matches
   );
@@ -187,7 +192,14 @@ function App() {
   useEffect(() => {
     const handleResize = () => setIsMobile(window.innerWidth < 768);
     window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
+    
+    // Delay canvas mount by a tick to free up the main thread for initial HTML/CSS paint (fixes TBT/LCP Lighthouse scores)
+    const timeout = setTimeout(() => setMountCanvas(true), 100);
+
+    return () => {
+      window.removeEventListener('resize', handleResize);
+      clearTimeout(timeout);
+    };
   }, []);
 
   const cameraPositions = [
@@ -213,15 +225,17 @@ function App() {
   const showKeyboard = activePage < 2;
 
   return (
-    <div className="relative bg-[#f0f2f5] text-gray-900 font-sans">
+    <main className="relative bg-[#f0f2f5] text-gray-900 font-sans">
       
       {/* ═══ Floating Navbar ═══ */}
       <FloatingNavbar />
 
       {/* ═══ Static Fallback for Reduced Motion/Low Power ═══ */}
-      {reducedMotion ? (
+      {reducedMotion || !mountCanvas ? (
         <div className="fixed inset-0 z-0 flex items-center justify-center pointer-events-none">
-          <img src="/src/assets/hero.png" alt="Cypher Keyboard Static Fallback" className="w-full max-w-4xl object-contain drop-shadow-2xl scale-125 md:scale-150" />
+          {reducedMotion && (
+            <img src="/src/assets/hero.png" alt="Cypher Keyboard Static Fallback" className="w-full max-w-4xl object-contain drop-shadow-2xl scale-125 md:scale-150" />
+          )}
         </div>
       ) : (
         <div className={`fixed inset-0 z-0 transition-opacity duration-[1000ms] ease-in-out ${showKeyboard ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
@@ -288,7 +302,9 @@ function App() {
                 <button
                   key={theme.id}
                   onClick={() => setActiveKeycapTheme(theme.id)}
-                  className={`flex flex-col items-center justify-center gap-2 p-2 md:p-3 rounded-xl border transition-all duration-300 cursor-pointer
+                  aria-pressed={activeKeycapTheme === theme.id}
+                  aria-label={`Select ${theme.name} theme`}
+                  className={`flex flex-col items-center justify-center gap-2 p-2 md:p-3 rounded-xl border transition-all duration-300 cursor-pointer focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-blue-400
                     ${activeKeycapTheme === theme.id
                       ? 'bg-[#1e3a5f] border-[#1e3a5f] shadow-lg shadow-[#1e3a5f]/20'
                       : 'bg-gray-100 border-gray-200 hover:bg-gray-200 hover:border-gray-300'
@@ -356,7 +372,7 @@ function App() {
       
       {/* ═══ Custom Fullscreen Loading Screen ═══ */}
       <CustomLoader />
-    </div>
+    </main>
   );
 }
 
