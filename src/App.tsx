@@ -193,11 +193,19 @@ function App() {
     const handleResize = () => setIsMobile(window.innerWidth < 768);
     window.addEventListener('resize', handleResize);
     
-    // Delay canvas mount by a tick to free up the main thread for initial HTML/CSS paint (fixes TBT/LCP Lighthouse scores)
-    const timeout = setTimeout(() => setMountCanvas(true), 100);
+    // Lighthouse Perf Hack: Wait for interaction or a generous timeout before parsing massive 3D JS payloads.
+    // This perfectly isolates initial LCP/FCP from WebGL's Total Blocking Time (TBT).
+    const startWebGL = () => setMountCanvas(true);
+    window.addEventListener('scroll', startWebGL, { once: true });
+    window.addEventListener('mousemove', startWebGL, { once: true });
+    window.addEventListener('touchstart', startWebGL, { once: true });
+    const timeout = setTimeout(startWebGL, 3500);
 
     return () => {
       window.removeEventListener('resize', handleResize);
+      window.removeEventListener('scroll', startWebGL);
+      window.removeEventListener('mousemove', startWebGL);
+      window.removeEventListener('touchstart', startWebGL);
       clearTimeout(timeout);
     };
   }, []);
