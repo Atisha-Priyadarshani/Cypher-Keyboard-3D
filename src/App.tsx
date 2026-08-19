@@ -370,8 +370,8 @@ function App() {
       </section>
 
       {/* ═══ PAGE 4 — Purchase ═══ */}
-      <section id="page-buy" className="relative z-10 h-screen flex items-center justify-center bg-white">
-        <div className="text-center pointer-events-auto max-w-2xl px-8">
+      <section id="page-buy" className="relative z-10 h-screen flex flex-col items-center justify-center bg-white">
+        <div className="text-center pointer-events-auto max-w-2xl px-8 flex-grow flex flex-col justify-center">
           <p className="text-xs tracking-[0.3em] uppercase text-[#1e3a5f] mb-4">Ready?</p>
           <h3 className="text-6xl md:text-7xl font-black mb-6">
             <span className="bg-gradient-to-r from-[#1e3a5f] via-[#2a5a8f] to-[#1e3a5f] bg-clip-text text-transparent">
@@ -393,6 +393,27 @@ function App() {
           </div>
           <p className="text-gray-400 text-sm mt-8">Free shipping · 30-day returns · Lifetime firmware updates</p>
         </div>
+
+        {/* ═══ Footer & FlyRank Badge ═══ */}
+        <footer className="w-full py-8 border-t border-gray-100 mt-auto bg-white/50 backdrop-blur-sm pointer-events-auto flex flex-col items-center justify-center gap-4">
+          <a 
+            href="https://flyrank.com/verify/graduate" 
+            target="_blank" 
+            rel="noopener noreferrer"
+            className="flex items-center gap-3 px-6 py-3 bg-gradient-to-r from-gray-900 to-gray-800 rounded-2xl shadow-xl hover:scale-105 transition-transform duration-300 group"
+          >
+            <div className="w-8 h-8 rounded-full bg-white flex items-center justify-center">
+              <svg className="w-5 h-5 text-gray-900 group-hover:text-blue-500 transition-colors" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+              </svg>
+            </div>
+            <div className="flex flex-col">
+              <span className="text-[10px] uppercase tracking-widest text-gray-400 font-bold leading-none mb-1">Certified By</span>
+              <span className="text-sm font-black text-white tracking-wide leading-none">FlyRank AI</span>
+            </div>
+          </a>
+          <p className="text-xs text-gray-400 font-medium mt-2">© 2026 Cypher Keyboards. Built by Atisha Priyadarshani.</p>
+        </footer>
       </section>
 
 
