@@ -184,28 +184,13 @@ function App() {
   const { activeKeycapTheme, setActiveKeycapTheme } = useConfiguratorStore();
   const [activePage, setActivePage] = useState(0);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
-  const [mountCanvas, setMountCanvas] = useState(false);
   const [reducedMotion] = useState(
     window.matchMedia('(prefers-reduced-motion: reduce)').matches
   );
-
   useEffect(() => {
     const handleResize = () => setIsMobile(window.innerWidth < 768);
     window.addEventListener('resize', handleResize);
-    
-    // Lighthouse Perf Hack: Wait ONLY for interaction before parsing massive 3D JS payloads.
-    // This perfectly isolates initial LCP/FCP from WebGL's Total Blocking Time (TBT).
-    const startWebGL = () => setMountCanvas(true);
-    window.addEventListener('scroll', startWebGL, { once: true });
-    window.addEventListener('mousemove', startWebGL, { once: true });
-    window.addEventListener('touchstart', startWebGL, { once: true });
-
-    return () => {
-      window.removeEventListener('resize', handleResize);
-      window.removeEventListener('scroll', startWebGL);
-      window.removeEventListener('mousemove', startWebGL);
-      window.removeEventListener('touchstart', startWebGL);
-    };
+    return () => window.removeEventListener('resize', handleResize);
   }, []);
 
   const cameraPositions = [
@@ -237,11 +222,9 @@ function App() {
       <FloatingNavbar />
 
       {/* ═══ Static Fallback for Reduced Motion/Low Power ═══ */}
-      {reducedMotion || !mountCanvas ? (
+      {reducedMotion ? (
         <div className="fixed inset-0 z-0 flex items-center justify-center pointer-events-none">
-          {reducedMotion && (
-            <img src="/src/assets/hero.png" alt="Cypher Keyboard Static Fallback" className="w-full max-w-4xl object-contain drop-shadow-2xl scale-125 md:scale-150" />
-          )}
+          <img src="/src/assets/hero.png" alt="Cypher Keyboard Static Fallback" className="w-full max-w-4xl object-contain drop-shadow-2xl scale-125 md:scale-150" />
         </div>
       ) : (
         <div className={`fixed inset-0 z-0 transition-opacity duration-[1000ms] ease-in-out ${showKeyboard ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
