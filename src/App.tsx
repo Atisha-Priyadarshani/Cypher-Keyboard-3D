@@ -180,6 +180,9 @@ function App() {
   const { activeKeycapTheme, setActiveKeycapTheme } = useConfiguratorStore();
   const [activePage, setActivePage] = useState(0);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+  const [reducedMotion] = useState(
+    window.matchMedia('(prefers-reduced-motion: reduce)').matches
+  );
 
   useEffect(() => {
     const handleResize = () => setIsMobile(window.innerWidth < 768);
@@ -195,6 +198,9 @@ function App() {
   ];
 
   useEffect(() => {
+    // If reduced motion is enabled, disable GSAP animations
+    if (reducedMotion) return;
+
     const ctx = gsap.context(() => {
       ScrollTrigger.create({ trigger: '#page-hero',     start: 'top center', end: 'bottom center', onEnter: () => setActivePage(0), onEnterBack: () => setActivePage(0) });
       ScrollTrigger.create({ trigger: '#page-keycaps',  start: 'top center', end: 'bottom center', onEnter: () => setActivePage(1), onEnterBack: () => setActivePage(1) });
@@ -202,35 +208,40 @@ function App() {
       ScrollTrigger.create({ trigger: '#page-buy',      start: 'top center', end: 'bottom center', onEnter: () => setActivePage(3), onEnterBack: () => setActivePage(3) });
     });
     return () => ctx.revert();
-  }, []);
+  }, [reducedMotion]);
 
   const showKeyboard = activePage < 2;
 
   return (
-    <div className="relative bg-white text-gray-900 font-sans">
+    <div className="relative bg-[#f0f2f5] text-gray-900 font-sans">
       
       {/* ═══ Floating Navbar ═══ */}
       <FloatingNavbar />
 
-      {/* ═══ Fixed 3D Canvas — only for keyboard on pages 1 & 2 ═══ */}
-      <div className={`fixed inset-0 z-0 transition-opacity duration-[1000ms] ease-in-out ${showKeyboard ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
-        <Canvas camera={{ position: [0, 3, 7], fov: 45 }}>
-          <color attach="background" args={['#f0f2f5']} />
-          <ambientLight intensity={0.4} />
-          <spotLight position={[10, 10, 10]} angle={0.15} penumbra={1} intensity={1} castShadow />
-          <pointLight position={[-5, 5, -5]} intensity={0.3} color="#4488ff" />
-          <Suspense fallback={null}>
-            <Environment preset="city" />
-            <AnimatedKeyboard
-              targetScale={activePage === 0 ? (isMobile ? 10 : 25) : (isMobile ? 9 : 22)}
-              targetPosition={activePage === 0 ? (isMobile ? [0, -0.1, 0] : [0, -0.5, 0]) : (isMobile ? [0, 0.8, 0] : [0, 0.2, 0])}
-              targetRotation={activePage === 0 ? [0.2, 0, 0] : [0.35, 0, 0]}
-            />
-            <ContactShadows position={[0, -0.8, 0]} opacity={0.5} scale={20} blur={2.5} far={4} />
-          </Suspense>
-          <CameraRig target={cameraPositions[activePage]} />
-        </Canvas>
-      </div>
+      {/* ═══ Static Fallback for Reduced Motion/Low Power ═══ */}
+      {reducedMotion ? (
+        <div className="fixed inset-0 z-0 flex items-center justify-center pointer-events-none">
+          <img src="/src/assets/hero.png" alt="Cypher Keyboard Static Fallback" className="w-full max-w-4xl object-contain drop-shadow-2xl scale-125 md:scale-150" />
+        </div>
+      ) : (
+        <div className={`fixed inset-0 z-0 transition-opacity duration-[1000ms] ease-in-out ${showKeyboard ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
+          <Canvas camera={{ position: [0, 3, 7], fov: 45 }}>
+            <ambientLight intensity={0.4} />
+            <spotLight position={[10, 10, 10]} angle={0.15} penumbra={1} intensity={1} castShadow />
+            <pointLight position={[-5, 5, -5]} intensity={0.3} color="#4488ff" />
+            <Suspense fallback={null}>
+              <Environment preset="city" />
+              <AnimatedKeyboard
+                targetScale={activePage === 0 ? (isMobile ? 10 : 25) : (isMobile ? 9 : 22)}
+                targetPosition={activePage === 0 ? (isMobile ? [0, -0.1, 0] : [0, -0.5, 0]) : (isMobile ? [0, 0.8, 0] : [0, 0.2, 0])}
+                targetRotation={activePage === 0 ? [0.2, 0, 0] : [0.35, 0, 0]}
+              />
+              <ContactShadows position={[0, -0.8, 0]} opacity={0.5} scale={20} blur={2.5} far={4} />
+            </Suspense>
+            <CameraRig target={cameraPositions[activePage]} />
+          </Canvas>
+        </div>
+      )}
 
       {/* ═══ PAGE 1 — Hero ═══ */}
       <section id="page-hero" className="relative z-10 h-screen flex flex-col items-center pointer-events-none">
